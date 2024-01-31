@@ -37,4 +37,43 @@ router.put("/updateTask/:id", async (req, res) => {
   }
 });
 
+//delete task item
+router.delete("/deleteTask/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { email } = req.body;
+    const existingUser = await User.findOneAndUpdate(
+      { email },
+      { $pull: { list: req.params.id } }
+    );
+    if (existingUser) {
+      await List.findByIdAndDelete(id).then(() =>
+        res.status(200).json({ message: "The task deleted successfully!" })
+      );
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+//get all tasks
+router.get("/getTasks/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const existingUser = await User.findById(id);
+    if (existingUser) {
+      const list = await List.find({ user: req.params.id });
+      if (list.length !== 0) {
+        res.status(200).json({ list });
+      } else {
+        res.status(200).json({ message: "There are no tasks!" });
+      }
+    } else {
+      res.status(404).json({ message: "User not found!" });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = router;
